@@ -64,7 +64,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return '';
             }
             var firstVariant = formatResult[0].from;
-            return template.replace(/(%DD)|(%HH)|(%MM)/g, function ( str, dd, hh, mm) {
+
+            return template.replace(/(%DD)|(%HH)|(%MM)/g, function (str, dd, hh, mm) {
                 if (dd) {
 
                     return firstVariant.day;
@@ -96,7 +97,7 @@ function getBadTime(schedule, mainFormat, workTime) {
     badWorkTimes.forEach(function (time) {
         badTimes.push(time);
     });
-    badTimes.sort(function(a, b) {
+    badTimes.sort(function (a, b) {
 
         return a[0] - b[0];
     });
@@ -107,14 +108,14 @@ function getBadTime(schedule, mainFormat, workTime) {
 function getBadTimesOfPerson(schedule) {
     var times = [];
     for (var person in schedule) {
-        schedule[person].map(function (time) {
+        schedule[person].forEach(function (time) {
             var period = [
-                    Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
+                Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
                     Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
                     minutesInDay(time.from.split(' ')[0]) -
                     Number(time.from.split(' ')[1].split('+')[1]) * 60,
 
-                    Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
+                Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
                     Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
                     minutesInDay(time.to.split(' ')[0]) -
                     Number(time.to.split(' ')[1].split('+')[1]) * 60
@@ -205,14 +206,14 @@ function getFormatResult(result) {
 }
 
 function dayString(day) {
-    var dayString = '';
+    var dayToString = '';
     goodDays.forEach(function (dayWeek) {
         if (dayWeek.coeff === day) {
-            dayString = dayWeek.toString;
+            dayToString = dayWeek.toString;
         }
     });
 
-    return dayString;
+    return dayToString;
 }
 
 function timeString(time) {
