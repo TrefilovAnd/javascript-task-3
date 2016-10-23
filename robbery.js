@@ -108,6 +108,9 @@ function getBadTime(schedule, mainFormat, workTime) {
 function getBadTimesOfPerson(schedule) {
     var times = [];
     for (var person in schedule) {
+        if (!schedule.hasOwnProperty(person)) {
+            return times;
+        }
         schedule[person].forEach(function (time) {
             var period = [
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
