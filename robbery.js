@@ -131,7 +131,7 @@ function getBadTimesOfPerson(schedule) {
 }
 
 function minutesInDay(day) {
-    var result = 0;
+    var result = 4 * 24 * 60;
     goodDays.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
             result = dayWeek.coeff * 24 * 60;
@@ -153,12 +153,15 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
             Number(workTime.to.split('+')[0].split(':')[1]) -
             (timeFormat) * 60 + i * 24 * 60
         ];
-        time.push(period);
+        if (period[0] < 3 * 24 * 60 &&
+            period[1] < 3 * 24 * 60) {
+            time.push(period);
+        }
     }
     var badTime = [
-        [0, time[0][0] - 1],
-        [time[0][1], time[1][0] - 1],
-        [time[1][1], time[2][0] - 1],
+        [0, time[0][0]],
+        [time[0][1], time[1][0]],
+        [time[1][1], time[2][0]],
         [time[2][1], 4320]
     ];
 
@@ -175,7 +178,7 @@ function getGoodTime(badTime, likeTime, timeFormat) {
             ]);
         }
     }
-
+    console.log(goodTime);
     return goodTime;
 }
 
