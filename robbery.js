@@ -36,6 +36,10 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
     var formatResult = getFormatResult(goodTime);
 
+    if (workingHours.from.split(':')[0] > workingHours.to.split(':')[0]) {
+        formatResult = [];
+    }
+
     return {
 
         /**
