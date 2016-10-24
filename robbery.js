@@ -182,7 +182,7 @@ function getGoodTime(badTime, likeTime, timeFormat) {
 
 function isValidSelectedTime(arrTime, selectedTime, count) {
     for (var i = 0; i < count; i++) {
-        if (selectedTime < arrTime[i]) {
+        if (selectedTime < arrTime[i][1]) {
             return false;
         }
     }
