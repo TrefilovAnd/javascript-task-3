@@ -35,7 +35,6 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
     var formatResult = getFormatResult(getGoodTime(badTimes, duration, mainTimeFormat));
 
-
     return {
 
         /**
@@ -205,7 +204,9 @@ function getFormatResult(result) {
                     Math.floor(fromTo[1] / (24 * 60)) * 24) * 60)
             }
         };
-        formatResult.push(period);
+        if (period.from.day === period.to.day) {
+            formatResult.push(period);
+        }
     });
 
     return formatResult;
