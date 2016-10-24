@@ -160,9 +160,9 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
         }
     }
     var badTime = [
-        [0, time[0][0]],
-        [time[0][1], time[1][0]],
-        [time[1][1], time[2][0]],
+        [0, time[0][0] - 1],
+        [time[0][1], time[1][0] - 1],
+        [time[1][1], time[2][0] - 1],
         [time[2][1], 4319]
     ];
 
