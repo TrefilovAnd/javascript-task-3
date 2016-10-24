@@ -36,7 +36,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
     var formatResult = [];
     if (workingHours.from.split(':')[0] < workingHours.to.split(':')[0] &&
-        workingHours.from.split('+').length !== 1 &&
+        workingHours.from.match(/\d\d:\d\d\+\d/) !== null &&
         isValidBanditsZone(schedule)) {
         var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
         var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
