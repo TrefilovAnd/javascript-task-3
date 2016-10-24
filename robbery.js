@@ -134,6 +134,7 @@ function getBadTimesOfPerson(schedule) {
     return times;
 }
 
+//Проверка положительный часовой пояс
 function isValidInput(bankTime, schedule) {
     if (bankTime.from.split('+').length === 1) {
         return false;
