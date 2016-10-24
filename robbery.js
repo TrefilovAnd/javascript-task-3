@@ -60,7 +60,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return '';
             }
             var firstVariant = formatResult[0].from;
-
+            console.log(formatResult);
             return template.replace(/(%DD)|(%HH)|(%MM)/g, function (str, dd, hh, mm) {
                 if (dd) {
 
@@ -157,8 +157,8 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
     }
     var badTime = [
         [0, time[0][0]],
-        [time[0][1], time[1][0] - 1],
-        [time[1][1], time[2][0] - 1],
+        [time[0][1], time[1][0]],
+        [time[1][1], time[2][0]],
         [time[2][1], 4319]
     ];
 
@@ -168,7 +168,8 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
 function getGoodTime(badTime, likeTime, timeFormat) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
-        if (badTime[i + 1][0] - badTime[i][1] >= likeTime) {
+        if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
+        isValidSelectedTime(badTime, badTime[i][1], i)) {
             goodTime.push([
                 badTime[i][1] + timeFormat * 60,
                 badTime[i + 1][0] + timeFormat * 60
@@ -177,6 +178,16 @@ function getGoodTime(badTime, likeTime, timeFormat) {
     }
 
     return goodTime;
+}
+
+function isValidSelectedTime(arrTime, selectedTime, count) {
+    for (var i = 0; i < count; i++) {
+        if (selectedTime < arrTime[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function getFormatResult(result) {
