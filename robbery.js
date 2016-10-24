@@ -60,7 +60,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return '';
             }
             var firstVariant = formatResult[0].from;
-            console.log(formatResult);
+            
             return template.replace(/(%DD)|(%HH)|(%MM)/g, function (str, dd, hh, mm) {
                 if (dd) {
 
