@@ -90,12 +90,10 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     };
 };
 
-//Собираем все время, не подходящее для ограбления 
 function getBadTime(schedule, mainFormat, workTime) {
     var badTimes = getBadTimesOfPerson(schedule);
     var badWorkTimes = getBadWorkTimesOfDays(workTime, mainFormat);
 
-    //Сложим их вместе и отсортируем
     badWorkTimes.forEach(function (time) {
         badTimes.push(time);
     });
@@ -107,7 +105,6 @@ function getBadTime(schedule, mainFormat, workTime) {
     return badTimes;
 }
 
-//Неудачное время исходя из занятости персонажей
 function getBadTimesOfPerson(schedule) {
     var times = [];
     for (var person in schedule) {
@@ -115,7 +112,6 @@ function getBadTimesOfPerson(schedule) {
             return times;
         }
         schedule[person].forEach(function (time) {
-            //Вычисли отрезки времени от a до b в минутах: [a, b]
             var period = [
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
                     Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
@@ -134,7 +130,6 @@ function getBadTimesOfPerson(schedule) {
     return times;
 }
 
-//Проверка положительный часовой пояс
 function isValidInput(bankTime, schedule) {
     if (bankTime.from.split('+').length === 1) {
         return false;
@@ -154,7 +149,6 @@ function isValidInput(bankTime, schedule) {
     return result;
 }
 
-//Перевод из ПН и пр. в минуты
 function minutesInDay(day) {
     var result = 4 * 24 * 60;
     GOODDAYS.forEach(function (dayWeek) {
@@ -166,7 +160,6 @@ function minutesInDay(day) {
     return result;
 }
 
-//Все то же самое, но с временем банка
 function getBadWorkTimesOfDays(workTime, timeFormat) {
     var time = [];
     for (var i = 0; i < 3; i++) {
@@ -194,7 +187,6 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
     return badTime;
 }
 
-//Нахоим промежутки, куда влезит наше время на ограбление
 function getGoodTime(badTime, likeTime, timeFormat) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
@@ -209,7 +201,6 @@ function getGoodTime(badTime, likeTime, timeFormat) {
     return goodTime;
 }
 
-//Переводим полученные интервалы для ограбления в удобный вид
 function getFormatResult(result) {
     var formatResult = [];
     result.forEach(function (fromTo) {
@@ -241,7 +232,6 @@ function getFormatResult(result) {
     return formatResult;
 }
 
-//кол. дней в день недели
 function dayString(day) {
     var dayToString = '';
     GOODDAYS.forEach(function (dayWeek) {
@@ -253,7 +243,6 @@ function dayString(day) {
     return dayToString;
 }
 
-//кол. времени в правильную строку
 function timeString(time) {
     if (time.toString().length === 1) {
         return '0' + time.toString();
