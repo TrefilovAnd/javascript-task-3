@@ -46,12 +46,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {Boolean}
          */
         exists: function () {
-            if (formatResult.length) {
 
-                return true;
-            }
-
-            return false;
+            return formatResult.length > 0;
         },
 
         /**
@@ -163,9 +159,9 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
     }
     var badTime = [
         [0, time[0][0]],
-        [time[0][1], time[1][0]],
-        [time[1][1], time[2][0]],
-        [time[2][1], 4320]
+        [time[0][1], time[1][0] - 1],
+        [time[1][1], time[2][0] - 1],
+        [time[2][1], 4319]
     ];
 
     return badTime;
