@@ -1,5 +1,5 @@
 'use strict';
-var goodDays = [
+var GOODDAYS = [
     {
         coeff: 0,
         toString: 'ПН'
@@ -31,9 +31,13 @@ exports.isStar = false;
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
-    var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
-    var formatResult = getFormatResult(getGoodTime(badTimes, duration, mainTimeFormat));
+    var checkedTime = workingHours.from.match(/\d\d:\d\d\+\d/);
+    var formatResult = [];
+    if (checkedTime !== null) {
+        var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
+        var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
+        formatResult = getFormatResult(getGoodTime(badTimes, duration, mainTimeFormat));
+    }
 
     return {
 
@@ -131,7 +135,7 @@ function getBadTimesOfPerson(schedule) {
 
 function minutesInDay(day) {
     var result = 4 * 24 * 60;
-    goodDays.forEach(function (dayWeek) {
+    GOODDAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
             result = dayWeek.coeff * 24 * 60;
         }
@@ -214,7 +218,7 @@ function getFormatResult(result) {
 
 function dayString(day) {
     var dayToString = '';
-    goodDays.forEach(function (dayWeek) {
+    GOODDAYS.forEach(function (dayWeek) {
         if (dayWeek.coeff === day) {
             dayToString = dayWeek.toString;
         }
