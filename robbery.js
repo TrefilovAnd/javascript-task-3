@@ -101,6 +101,7 @@ function getBadTime(schedule, mainFormat, workTime) {
 
         return a[0] - b[0];
     });
+
     return badTimes;
 }
 
@@ -129,7 +130,7 @@ function getBadTimesOfPerson(schedule) {
     return times;
 }
 
-function isValidInput(bankTime, schedule) {
+function isValidInput(bankTime) {
     if (bankTime.from.match(/\d\d:\d\d\+\d/) === null) {
         return false;
     }
@@ -182,13 +183,12 @@ function getBadBanksTime(workTime, timeFormat) {
 function getGoodTime(badTime, likeTime, timeFormat) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
-        if (badTime[i + 1][0] - badTime[i][1] >= likeTime) {
-            if (isValidSelectedTime(badTime, badTime[i][1], i)) {
-                goodTime.push([
-                    badTime[i][1] + timeFormat * 60,
-                    badTime[i + 1][0] + timeFormat * 60
-                ]);
-            }
+        if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
+            isValidSelectedTime(badTime, badTime[i][1], i)) {
+            goodTime.push([
+                badTime[i][1] + timeFormat * 60,
+                badTime[i + 1][0] + timeFormat * 60
+            ]);
         }
     }
 
