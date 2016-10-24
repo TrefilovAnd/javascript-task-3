@@ -92,7 +92,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
 function getBadTime(schedule, mainFormat, workTime) {
     var badTimes = getBadTimesOfPerson(schedule);
-    var badWorkTimes = getBadBanksTime(workTime, mainFormat);
+    var badWorkTimes = getBadWorkTimesOfDays(workTime, mainFormat);
 
     badWorkTimes.forEach(function (time) {
         badTimes.push(time);
@@ -114,14 +114,14 @@ function getBadTimesOfPerson(schedule) {
         schedule[person].forEach(function (time) {
             var period = [
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
-                    Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
-                    minutesInDay(time.from.split(' ')[0]) -
-                    Number(time.from.split(' ')[1].split('+')[1]) * 60,
+                Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
+                minutesInDay(time.from.split(' ')[0]) -
+                Number(time.from.split(' ')[1].split('+')[1]) * 60,
 
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
-                    Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
-                    minutesInDay(time.to.split(' ')[0]) -
-                    Number(time.to.split(' ')[1].split('+')[1]) * 60
+                Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
+                minutesInDay(time.to.split(' ')[0]) -
+                Number(time.to.split(' ')[1].split('+')[1]) * 60
             ];
             times.push(period);
         });
@@ -130,16 +130,23 @@ function getBadTimesOfPerson(schedule) {
     return times;
 }
 
-function isValidInput(bankTime) {
-    if (bankTime.from.match(/\d\d:\d\d\+\d/) === null) {
+function isValidInput(bankTime, schedule) {
+    if (bankTime.from.split('+').length === 1) {
         return false;
     }
-    if (Number(bankTime.from.split(':')[0]) >
-        Number(bankTime.to.split(':')[0])) {
-        return false;
+    var result = true;
+    for (var person in schedule) {
+        if (!schedule.hasOwnProperty(person)) {
+            return false;
+        }
+        schedule[person].forEach(function (time) {
+            if (time.from.split('+').length === 1) {
+                result = false;
+            }
+        });
     }
 
-    return true;
+    return result;
 }
 
 function minutesInDay(day) {
@@ -153,7 +160,7 @@ function minutesInDay(day) {
     return result;
 }
 
-function getBadBanksTime(workTime, timeFormat) {
+function getBadWorkTimesOfDays(workTime, timeFormat) {
     var time = [];
     for (var i = 0; i < 3; i++) {
         var period = [
@@ -171,7 +178,7 @@ function getBadBanksTime(workTime, timeFormat) {
         }
     }
     var badTime = [
-        [0, time[0][0] - 1],
+        [0, time[0][0]],
         [time[0][1], time[1][0] - 1],
         [time[1][1], time[2][0] - 1],
         [time[2][1], 4319]
@@ -183,8 +190,7 @@ function getBadBanksTime(workTime, timeFormat) {
 function getGoodTime(badTime, likeTime, timeFormat) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
-        if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
-            isValidSelectedTime(badTime, badTime[i][1], i)) {
+        if (badTime[i + 1][0] - badTime[i][1] >= likeTime) {
             goodTime.push([
                 badTime[i][1] + timeFormat * 60,
                 badTime[i + 1][0] + timeFormat * 60
@@ -193,16 +199,6 @@ function getGoodTime(badTime, likeTime, timeFormat) {
     }
 
     return goodTime;
-}
-
-function isValidSelectedTime(arrTime, selectedTime, count) {
-    for (var i = 0; i < count; i++) {
-        if (selectedTime < arrTime[i][1]) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 function getFormatResult(result) {
