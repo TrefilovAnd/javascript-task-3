@@ -97,18 +97,19 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
 function isValidBanditsZone(schedule) {
     var result = true;
+    var regular = /[ПНВТСР]{2} \d\d:\d\d\+\d/;
     schedule.Danny.forEach(function (time) {
-        if (time.from.split('+').length === 1) {
+        if (time.from.match(regular) === null) {
             result = false;
         }
     });
     schedule.Rusty.forEach(function (time) {
-        if (time.from.split('+').length === 1) {
+        if (time.from.match(regular) === null) {
             result = false;
         }
     });
     schedule.Linus.forEach(function (time) {
-        if (time.from.split('+').length === 1) {
+        if (time.from.match(regular) === null) {
             result = false;
         }
     });
