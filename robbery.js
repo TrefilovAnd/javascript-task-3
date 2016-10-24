@@ -178,7 +178,7 @@ function getGoodTime(badTime, likeTime, timeFormat) {
             ]);
         }
     }
-    
+
     return goodTime;
 }
 
