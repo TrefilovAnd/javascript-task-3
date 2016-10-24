@@ -16,6 +16,7 @@ var GOODDAYS = [
 
 var MINUTESINDAY = 24 * 60;
 var MINUTESINHOURS = 60;
+
 /**
  * Сделано задание на звездочку
  * Реализовано оба метода и tryLater
