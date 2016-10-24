@@ -31,13 +31,13 @@ exports.isStar = false;
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
-    var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
-    var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
-    var formatResult = getFormatResult(goodTime);
-
-    if (workingHours.from.split(':')[0] > workingHours.to.split(':')[0]) {
-        formatResult = [];
+    var formatResult = [];
+    if (workingHours.from.split(':')[0] < workingHours.to.split(':')[0] &&
+        workingHours.from.split('+').length !== 1) {
+        var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
+        var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
+        var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
+        formatResult = getFormatResult(goodTime);
     }
 
     return {
