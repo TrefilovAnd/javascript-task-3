@@ -31,13 +31,10 @@ exports.isStar = false;
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var formatResult = [];
-    if (isValidInput(workingHours, schedule)) {
-        var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
-        var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
-        var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
-        formatResult = getFormatResult(goodTime);
-    }
+    var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
+    var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
+    var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
+    var formatResult = getFormatResult(goodTime);
 
     return {
 
@@ -128,25 +125,6 @@ function getBadTimesOfPerson(schedule) {
     }
 
     return times;
-}
-
-function isValidInput(bankTime, schedule) {
-    if (bankTime.from.split('+').length === 1) {
-        return false;
-    }
-    var result = true;
-    for (var person in schedule) {
-        if (!schedule.hasOwnProperty(person)) {
-            return false;
-        }
-        schedule[person].forEach(function (time) {
-            if (time.from.split('+').length === 1) {
-                result = false;
-            }
-        });
-    }
-
-    return result;
 }
 
 function minutesInDay(day) {
