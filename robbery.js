@@ -90,7 +90,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     };
 };
 
-//Собираем все время, не подходящее для ограбления
+//Собираем все время, не подходящее для ограбления 
 function getBadTime(schedule, mainFormat, workTime) {
     var badTimes = getBadTimesOfPerson(schedule);
     var badWorkTimes = getBadWorkTimesOfDays(workTime, mainFormat);
