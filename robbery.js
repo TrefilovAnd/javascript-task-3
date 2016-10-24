@@ -14,6 +14,8 @@ var GOODDAYS = [
     }
 ];
 
+var MINUTESINDAY = 24 * 60;
+var MINUTESINHOURS = 60;
 /**
  * Сделано задание на звездочку
  * Реализовано оба метода и tryLater
@@ -33,7 +35,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
     var formatResult = [];
     if (workingHours.from.split(':')[0] < workingHours.to.split(':')[0] &&
-        workingHours.from.split('+').length !== 1) {
+        workingHours.from.split('+').length !== 1 &&
+        isValidBanditsZone(schedule)) {
         var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
         var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
         var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
@@ -91,6 +94,27 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     };
 };
 
+function isValidBanditsZone(schedule) {
+    var result = true;
+    schedule.Danny.forEach(function (time) {
+        if (time.from.split('+').length === 1) {
+            result = false;
+        }
+    });
+    schedule.Rusty.forEach(function (time) {
+        if (time.from.split('+').length === 1) {
+            result = false;
+        }
+    });
+    schedule.Linus.forEach(function (time) {
+        if (time.from.split('+').length === 1) {
+            result = false;
+        }
+    });
+
+    return result;
+}
+
 function getBadTime(schedule, mainFormat, workTime) {
     var badTimes = getBadTimesOfPerson(schedule);
     var badWorkTimes = getBadWorkTimesOfDays(workTime, mainFormat);
@@ -114,15 +138,19 @@ function getBadTimesOfPerson(schedule) {
         }
         schedule[person].forEach(function (time) {
             var period = [
-                Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
+                Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) *
+                MINUTESINHOURS +
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.from.split(' ')[0]) -
-                Number(time.from.split(' ')[1].split('+')[1]) * 60,
+                Number(time.from.split(' ')[1].split('+')[1]) *
+                MINUTESINHOURS,
 
-                Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) * 60 +
+                Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) *
+                MINUTESINHOURS +
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.to.split(' ')[0]) -
-                Number(time.to.split(' ')[1].split('+')[1]) * 60
+                Number(time.to.split(' ')[1].split('+')[1]) *
+                MINUTESINHOURS
             ];
             times.push(period);
         });
@@ -132,10 +160,10 @@ function getBadTimesOfPerson(schedule) {
 }
 
 function minutesInDay(day) {
-    var result = 4 * 24 * 60;
+    var result = 4 * MINUTESINDAY;
     GOODDAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
-            result = dayWeek.coeff * 24 * 60;
+            result = dayWeek.coeff * MINUTESINDAY;
         }
     });
 
@@ -146,16 +174,18 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
     var time = [];
     for (var i = 0; i < 3; i++) {
         var period = [
-            Number(workTime.from.split('+')[0].split(':')[0]) * 60 +
+            Number(workTime.from.split('+')[0].split(':')[0]) *
+            MINUTESINHOURS +
             Number(workTime.from.split('+')[0].split(':')[1]) -
-            (timeFormat) * 60 + i * 24 * 60,
+            (timeFormat) * MINUTESINHOURS + i * MINUTESINDAY,
 
-            Number(workTime.to.split('+')[0].split(':')[0]) * 60 +
+            Number(workTime.to.split('+')[0].split(':')[0]) *
+            MINUTESINHOURS +
             Number(workTime.to.split('+')[0].split(':')[1]) -
-            (timeFormat) * 60 + i * 24 * 60
+            (timeFormat) * MINUTESINHOURS + i * MINUTESINDAY
         ];
-        if (period[0] < 3 * 24 * 60 &&
-            period[1] < 3 * 24 * 60) {
+        if (period[0] < 3 * MINUTESINDAY &&
+            period[1] < 3 * MINUTESINDAY) {
             time.push(period);
         }
     }
@@ -175,8 +205,8 @@ function getGoodTime(badTime, likeTime, timeFormat) {
         if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
         isValidSelectedTime(badTime, badTime[i][1], i)) {
             goodTime.push([
-                badTime[i][1] + timeFormat * 60,
-                badTime[i + 1][0] + timeFormat * 60
+                badTime[i][1] + timeFormat * MINUTESINHOURS,
+                badTime[i + 1][0] + timeFormat * MINUTESINHOURS
             ]);
         }
     }
@@ -199,22 +229,24 @@ function getFormatResult(result) {
     result.forEach(function (fromTo) {
         var period = {
             from: {
-                day: dayString(Math.floor(fromTo[0] / (24 * 60))),
-                hours: timeString(Math.floor(fromTo[0] / 60) -
-                    Math.floor(fromTo[0] / (24 * 60)) * 24),
+                day: dayString(Math.floor(fromTo[0] / (MINUTESINDAY))),
+                hours: timeString(Math.floor(fromTo[0] / MINUTESINHOURS) -
+                    Math.floor(fromTo[0] / (MINUTESINDAY)) * 24),
                 minutes: timeString(fromTo[0] -
-                    Math.floor(fromTo[0] / (24 * 60)) * (24 * 60) -
-                    (Math.floor(fromTo[0] / 60) -
-                    Math.floor(fromTo[0] / (24 * 60)) * 24) * 60)
+                    Math.floor(fromTo[0] / (MINUTESINDAY)) * (MINUTESINDAY) -
+                    (Math.floor(fromTo[0] / MINUTESINHOURS) -
+                    Math.floor(fromTo[0] / (MINUTESINDAY)) * 24) *
+                    MINUTESINHOURS)
             },
             to: {
-                day: dayString(Math.floor(fromTo[1] / (24 * 60))),
-                hours: timeString(Math.floor(fromTo[1] / 60) -
-                    Math.floor(fromTo[1] / (24 * 60)) * 24),
+                day: dayString(Math.floor(fromTo[1] / (MINUTESINDAY))),
+                hours: timeString(Math.floor(fromTo[1] / MINUTESINHOURS) -
+                    Math.floor(fromTo[1] / (MINUTESINDAY)) * 24),
                 minutes: timeString(fromTo[1] -
-                    Math.floor(fromTo[1] / (24 * 60)) * (24 * 60) -
-                    (Math.floor(fromTo[1] / 60) -
-                    Math.floor(fromTo[1] / (24 * 60)) * 24) * 60)
+                    Math.floor(fromTo[1] / (MINUTESINDAY)) * (MINUTESINDAY) -
+                    (Math.floor(fromTo[1] / MINUTESINHOURS) -
+                    Math.floor(fromTo[1] / (MINUTESINDAY)) * 24) *
+                    MINUTESINHOURS)
             }
         };
         if (period.from.day === period.to.day) {
