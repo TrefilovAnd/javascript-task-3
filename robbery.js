@@ -68,19 +68,13 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return '';
             }
             var firstVariant = formatResult[0].from;
+            var day = RegExp('(%DD)');
+            var hours = RegExp('(%HH)');
+            var minutes = RegExp('(%MM)');
 
-            return template.replace(/(%DD)|(%HH)|(%MM)/g, function (str, dd, hh, mm) {
-                if (dd) {
-
-                    return firstVariant.day;
-                } else if (hh) {
-
-                    return firstVariant.hours;
-                } else if (mm) {
-
-                    return firstVariant.minutes;
-                }
-            });
+            return template.replace(day, firstVariant.day)
+                .replace(hours, firstVariant.hours)
+                .replace(minutes, firstVariant.minutes);
         },
 
         /**
