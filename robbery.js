@@ -99,8 +99,24 @@ function getBadTime(schedule, mainFormat, workTime) {
 
         return a[0] - b[0];
     });
+    badTimes = unionBadTimes(badTimes);
 
     return badTimes;
+}
+
+function unionBadTimes(badTimes) {
+    var times = badTimes;
+    for (var i = 0; i < times.length - 1; i++) {
+        if (times[i][1] > times[i + 1][0] &&
+            times[i][1] > times[i + 1][1]) {
+            times[i + 1] = times[i];
+        } else if (times[i][1] > times[i + 1][0] &&
+            times[i][1] < times[i + 1][1]) {
+            times[i + 1] = [times[i][0], times[i + 1][1]];
+        }
+    }
+
+    return times;
 }
 
 function getBadTimesOfPerson(schedule, timeFormat) {
@@ -175,16 +191,8 @@ function getBadWorkTimesOfDays(workTime) {
 function getGoodTime(badTime, likeTime) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
-        var selectedTime = badTime[i + 1][0] - badTime[i][1];
-        if (selectedTime >= likeTime &&
-            isValidSelectedTime(badTime, badTime[i][1])) {
-            goodTime.push([
-                badTime[i][1],
-                badTime[i + 1][0]
-            ]);
-        } else if (selectedTime < 0 &&
-            checkPeriod(badTime, i, likeTime) &&
-            i < badTime.length - 2) {
+        var selectedPeriod = badTime[i + 1][0] - badTime[i][1];
+        if (selectedPeriod >= likeTime) {
             goodTime.push([
                 badTime[i][1],
                 badTime[i + 1][0]
@@ -193,26 +201,6 @@ function getGoodTime(badTime, likeTime) {
     }
 
     return goodTime;
-}
-
-function isValidSelectedTime(arrTime, selectedTime) {
-    for (var i = 0; i < arrTime.length; i++) {
-        if (selectedTime > arrTime[i][0] &&
-            selectedTime < arrTime[i][1]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-function checkPeriod(arrTime, index, likeTime) {
-    if (arrTime[index][1] > arrTime[index + 1][1] &&
-    arrTime[index + 2][0] - arrTime[index][1] >= likeTime) {
-        return true;
-    }
-
-    return false;
 }
 
 function getFormatResult(result) {
