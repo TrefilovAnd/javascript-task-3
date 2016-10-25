@@ -34,15 +34,10 @@ exports.isStar = false;
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var formatResult = [];
-    if (workingHours.from.split(':')[0] < workingHours.to.split(':')[0] &&
-        workingHours.from.match(/\d\d:\d\d\+\d/) !== null &&
-        isValidBanditsZone(schedule)) {
-        var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
-        var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
-        var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
-        formatResult = getFormatResult(goodTime);
-    }
+    var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
+    var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
+    var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
+    var formatResult = getFormatResult(goodTime);
 
     return {
 
@@ -89,30 +84,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     };
 };
 
-function isValidBanditsZone(schedule) {
-    var result = true;
-    var regular = /[ПНВТСР]{2} \d\d:\d\d\+\d/;
-    schedule.Danny.forEach(function (time) {
-        if (time.from.match(regular) === null) {
-            result = false;
-        }
-    });
-    schedule.Rusty.forEach(function (time) {
-        if (time.from.match(regular) === null) {
-            result = false;
-        }
-    });
-    schedule.Linus.forEach(function (time) {
-        if (time.from.match(regular) === null) {
-            result = false;
-        }
-    });
-
-    return result;
-}
-
 function getBadTime(schedule, mainFormat, workTime) {
-    var badTimes = getBadTimesOfPerson(schedule);
+    var badTimes = getBadTimesOfPerson(schedule, mainFormat);
     var badWorkTimes = getBadWorkTimesOfDays(workTime, mainFormat);
 
     badWorkTimes.forEach(function (time) {
@@ -126,7 +99,7 @@ function getBadTime(schedule, mainFormat, workTime) {
     return badTimes;
 }
 
-function getBadTimesOfPerson(schedule) {
+function getBadTimesOfPerson(schedule, timeFormat) {
     var times = [];
     for (var person in schedule) {
         if (!schedule.hasOwnProperty(person)) {
@@ -139,14 +112,14 @@ function getBadTimesOfPerson(schedule) {
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.from.split(' ')[0]) -
                 Number(time.from.split(' ')[1].split('+')[1]) *
-                MINUTESINHOURS,
+                MINUTESINHOURS + (timeFormat) * MINUTESINHOURS,
 
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) *
                 MINUTESINHOURS +
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.to.split(' ')[0]) -
                 Number(time.to.split(' ')[1].split('+')[1]) *
-                MINUTESINHOURS
+                MINUTESINHOURS + (timeFormat) * MINUTESINHOURS
             ];
             times.push(period);
         });
@@ -166,19 +139,19 @@ function minutesInDay(day) {
     return result;
 }
 
-function getBadWorkTimesOfDays(workTime, timeFormat) {
+function getBadWorkTimesOfDays(workTime) {
     var time = [];
     for (var i = 0; i < 3; i++) {
         var period = [
             Number(workTime.from.split('+')[0].split(':')[0]) *
             MINUTESINHOURS +
-            Number(workTime.from.split('+')[0].split(':')[1]) -
-            (timeFormat) * MINUTESINHOURS + i * MINUTESINDAY,
+            Number(workTime.from.split('+')[0].split(':')[1]) +
+            i * MINUTESINDAY,
 
             Number(workTime.to.split('+')[0].split(':')[0]) *
             MINUTESINHOURS +
-            Number(workTime.to.split('+')[0].split(':')[1]) -
-            (timeFormat) * MINUTESINHOURS + i * MINUTESINDAY
+            Number(workTime.to.split('+')[0].split(':')[1]) +
+            i * MINUTESINDAY
         ];
         if (period[0] < 3 * MINUTESINDAY &&
             period[1] < 3 * MINUTESINDAY) {
@@ -195,14 +168,15 @@ function getBadWorkTimesOfDays(workTime, timeFormat) {
     return badTime;
 }
 
-function getGoodTime(badTime, likeTime, timeFormat) {
+function getGoodTime(badTime, likeTime) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
+        var validTime = isValidSelectedTime(badTime, badTime[i][1], i, likeTime);
         if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
-        isValidSelectedTime(badTime, badTime[i][1], i)) {
+        validTime) {
             goodTime.push([
-                badTime[i][1] + timeFormat * MINUTESINHOURS,
-                badTime[i + 1][0] + timeFormat * MINUTESINHOURS
+                validTime,
+                validTime + likeTime
             ]);
         }
     }
@@ -210,14 +184,23 @@ function getGoodTime(badTime, likeTime, timeFormat) {
     return goodTime;
 }
 
-function isValidSelectedTime(arrTime, selectedTime, count) {
+function isValidSelectedTime(arrTime, selectedTime, count, likeTime) {
     for (var i = 0; i < count; i++) {
         if (selectedTime < arrTime[i][1]) {
-            return false;
+            return getValidResult(arrTime[i][1],
+                arrTime[count + 1][0], likeTime);
         }
     }
 
-    return true;
+    return selectedTime;
+}
+
+function getValidResult(timeA, timeB, likeTime) {
+    if (timeB - timeA <= likeTime) {
+        return timeA;
+    }
+
+    return false;
 }
 
 function getFormatResult(result) {
