@@ -176,16 +176,15 @@ function getGoodTime(badTime, likeTime) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
         var selectedTime = badTime[i + 1][0] - badTime[i][1];
-        if (selectedTime >= likeTime) {
-            if (isValidSelectedTime(badTime, badTime[i][1])) {
-                goodTime.push([
-                    badTime[i][1],
-                    badTime[i + 1][0]
-                ]);
-            }
+        if (selectedTime >= likeTime &&
+            isValidSelectedTime(badTime, badTime[i][1])) {
+            goodTime.push([
+                badTime[i][1],
+                badTime[i + 1][0]
+            ]);
         }
     }
-    
+
     return goodTime;
 }
 
