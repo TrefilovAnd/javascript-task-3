@@ -185,9 +185,7 @@ function getGoodTime(badTime, likeTime) {
             }
         }
     }
-
-    console.log(badTime);
-    console.log(goodTime);
+    
     return goodTime;
 }
 
