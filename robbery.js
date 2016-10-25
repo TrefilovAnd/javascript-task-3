@@ -1,5 +1,5 @@
 'use strict';
-var GOODDAYS = [
+var GOODWEEKDAYS = [
     {
         coeff: 0,
         toString: 'ПН'
@@ -163,7 +163,7 @@ function getBadTimesOfPerson(schedule) {
 
 function minutesInDay(day) {
     var result = 4 * MINUTESINDAY;
-    GOODDAYS.forEach(function (dayWeek) {
+    GOODWEEKDAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
             result = dayWeek.coeff * MINUTESINDAY;
         }
@@ -261,7 +261,7 @@ function getFormatResult(result) {
 
 function dayString(day) {
     var dayToString = '';
-    GOODDAYS.forEach(function (dayWeek) {
+    GOODWEEKDAYS.forEach(function (dayWeek) {
         if (dayWeek.coeff === day) {
             dayToString = dayWeek.toString;
         }
