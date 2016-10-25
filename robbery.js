@@ -182,6 +182,13 @@ function getGoodTime(badTime, likeTime) {
                 badTime[i][1],
                 badTime[i + 1][0]
             ]);
+        } else if (selectedTime < 0 &&
+            checkPeriod(badTime, i, likeTime) &&
+            i < badTime.length - 2) {
+            goodTime.push([
+                badTime[i][1],
+                badTime[i + 1][0]
+            ]);
         }
     }
 
@@ -197,6 +204,15 @@ function isValidSelectedTime(arrTime, selectedTime) {
     }
 
     return true;
+}
+
+function checkPeriod(arrTime, index, likeTime) {
+    if (arrTime[index][1] > arrTime[index + 1][1] &&
+    arrTime[index + 2][0] - arrTime[index][1] >= likeTime) {
+        return true;
+    }
+
+    return false
 }
 
 function getFormatResult(result) {
