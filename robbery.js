@@ -93,6 +93,10 @@ function getBadTime(schedule, mainFormat, workTime) {
     });
     badTimes.sort(function (a, b) {
 
+        return a[1] - b[1];
+    });
+    badTimes.sort(function (a, b) {
+
         return a[0] - b[0];
     });
 
@@ -171,36 +175,31 @@ function getBadWorkTimesOfDays(workTime) {
 function getGoodTime(badTime, likeTime) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
-        var validTime = isValidSelectedTime(badTime, badTime[i][1], i, likeTime);
-        if (badTime[i + 1][0] - badTime[i][1] >= likeTime &&
-        validTime) {
-            goodTime.push([
-                validTime,
-                validTime + likeTime
-            ]);
+        var selectedTime = badTime[i + 1][0] - badTime[i][1];
+        if (selectedTime >= likeTime) {
+            if (isValidSelectedTime(badTime, badTime[i][1])) {
+                goodTime.push([
+                    badTime[i][1],
+                    badTime[i + 1][0]
+                ]);
+            }
         }
     }
 
+    console.log(badTime);
+    console.log(goodTime);
     return goodTime;
 }
 
-function isValidSelectedTime(arrTime, selectedTime, count, likeTime) {
-    for (var i = 0; i < count; i++) {
-        if (selectedTime < arrTime[i][1]) {
-            return getValidResult(arrTime[i][1],
-                arrTime[count + 1][0], likeTime);
+function isValidSelectedTime(arrTime, selectedTime) {
+    for (var i = 0; i < arrTime.length; i++) {
+        if (selectedTime > arrTime[i][0] &&
+            selectedTime < arrTime[i][1]) {
+            return false;
         }
     }
 
-    return selectedTime;
-}
-
-function getValidResult(timeA, timeB, likeTime) {
-    if (timeB - timeA <= likeTime) {
-        return timeA;
-    }
-
-    return false;
+    return true;
 }
 
 function getFormatResult(result) {
