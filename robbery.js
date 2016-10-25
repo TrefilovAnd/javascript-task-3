@@ -212,7 +212,7 @@ function checkPeriod(arrTime, index, likeTime) {
         return true;
     }
 
-    return false
+    return false;
 }
 
 function getFormatResult(result) {
