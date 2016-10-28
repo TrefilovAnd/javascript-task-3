@@ -37,9 +37,9 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     gangStringInMinutes('ВТ 11:05+5', 5);
 
     var bankTimezone = Number(workingHours.from.split('+')[1]);
-    var badTimes = getBadTimes(schedule, bankTimezone, workingHours);
-    var goodTimes = getGoodTimes(badTimes, duration, bankTimezone);
-    var formatResult = getFormatResult(goodTimes);
+    var badPeriods = getBadPeriods(schedule, bankTimezone, workingHours);
+    var goodPeriods = getGoodPeriods(badPeriods, duration, bankTimezone);
+    var formatResult = getFormatResult(goodPeriods);
 
     return {
 
@@ -82,20 +82,20 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     };
 };
 
-function getBadTimes(schedule, mainFormat, workTime) {
-    var badGangTimes = getBadGangTimes(schedule, mainFormat);
-    var badBankTimes = getBadBankTimes(workTime, mainFormat);
+function getBadPeriods(schedule, mainFormat, workTime) {
+    var badGangPeriods = getBadGangPeriods(schedule, mainFormat);
+    var badBankPeriods = getBadBanksPeriods(workTime, mainFormat);
 
-    var badTimes = badGangTimes.concat(badBankTimes);
-    badTimes.sort(function (a, b) {
+    var badPeriods = badGangPeriods.concat(badBankPeriods);
+    badPeriods.sort(function (a, b) {
         return a.to - b.to;
     });
-    badTimes.sort(function (a, b) {
+    badPeriods.sort(function (a, b) {
         return a.from - b.from;
     });
-    badTimes = unionBadTimes(badTimes);
+    badPeriods = unionBadTimes(badPeriods);
 
-    return badTimes;
+    return badPeriods;
 }
 
 function unionBadTimes(badTimes) {
@@ -118,7 +118,7 @@ function unionBadTimes(badTimes) {
     return times;
 }
 
-function getBadGangTimes(schedule, mainTimezome) {
+function getBadGangPeriods(schedule, mainTimezone) {
     var periods = [];
     for (var person in schedule) {
         if (!schedule.hasOwnProperty(person)) {
@@ -126,8 +126,8 @@ function getBadGangTimes(schedule, mainTimezome) {
         }
         schedule[person].forEach(function (time) {
             var period = {
-                from: gangStringInMinutes(time.from, mainTimezome),
-                to: gangStringInMinutes(time.to, mainTimezome)
+                from: gangStringInMinutes(time.from, mainTimezone),
+                to: gangStringInMinutes(time.to, mainTimezone)
             };
             periods.push(period);
         });
@@ -136,7 +136,10 @@ function getBadGangTimes(schedule, mainTimezome) {
     return periods;
 }
 
+//Перевод дня недели в минуты
 function minutesInDay(day) {
+    //Берем изначально большое количество,
+    //чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
     var result = 4 * MINUTES_IN_DAY;
     GOOD_WEEK_DAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
@@ -147,7 +150,7 @@ function minutesInDay(day) {
     return result;
 }
 
-function getBadBankTimes(workTime) {
+function getBadBanksPeriods(workTime) {
     var periods = [];
     for (var i = 0; i < 3; i++) {
         var period = {
@@ -168,12 +171,14 @@ function getBadBankTimes(workTime) {
     return periods;
 }
 
+//Перевод строки времени банка в минуты
 function bankStringInMinutes(stringTime) {
     var time = stringTime.match(/(\d\d):(\d\d)/);
     return Number(time[1]) * MINUTES_IN_HOURS +
         Number(time[2]);
 }
 
+//Перевод строки времени бандитов в минуты
 function gangStringInMinutes(stringTime, mainTimezone) {
     var time = stringTime.match(/([ПНВТСРЧБ]{2}) (\d\d):(\d\d)\+(\d)/);
 
@@ -184,19 +189,19 @@ function gangStringInMinutes(stringTime, mainTimezone) {
             mainTimezone * MINUTES_IN_HOURS;
 }
 
-function getGoodTimes(badTime, likeTime) {
-    var goodTime = [];
+function getGoodPeriods(badTime, likeTime) {
+    var periods = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
         var selectedPeriod = badTime[i + 1].from - badTime[i].to;
         if (selectedPeriod >= likeTime) {
-            goodTime.push({
+            periods.push({
                 from: badTime[i].to,
                 to: badTime[i + 1].from
             });
         }
     }
 
-    return goodTime;
+    return periods;
 }
 
 function getFormatResult(result) {
