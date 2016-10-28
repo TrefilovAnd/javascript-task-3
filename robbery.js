@@ -1,5 +1,5 @@
 'use strict';
-var GOODWEEKDAYS = [
+var GOOD_WEEK_DAYS = [
     {
         coeff: 0,
         toString: 'ПН'
@@ -14,8 +14,8 @@ var GOODWEEKDAYS = [
     }
 ];
 
-var MINUTESINDAY = 24 * 60;
-var MINUTESINHOURS = 60;
+var MINUTES_IN_DAY = 24 * 60;
+var MINUTES_IN_HOURS = 60;
 
 /**
  * Сделано задание на звездочку
@@ -34,9 +34,9 @@ exports.isStar = false;
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var mainTimeFormat = Number(workingHours.from.match(/\+(\d+)/)[1]);
-    var badTimes = getBadTime(schedule, mainTimeFormat, workingHours);
-    var goodTime = getGoodTime(badTimes, duration, mainTimeFormat);
+    var bankTimezone = Number(workingHours.from.split('+')[1]);
+    var badTimes = getBadTime(schedule, bankTimezone, workingHours);
+    var goodTime = getGoodTime(badTimes, duration, bankTimezone);
     var formatResult = getFormatResult(goodTime);
 
     return {
@@ -128,18 +128,18 @@ function getBadTimesOfPerson(schedule, timeFormat) {
         schedule[person].forEach(function (time) {
             var period = [
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) *
-                MINUTESINHOURS +
+                MINUTES_IN_HOURS +
                 Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.from.split(' ')[0]) -
                 Number(time.from.split(' ')[1].split('+')[1]) *
-                MINUTESINHOURS + (timeFormat) * MINUTESINHOURS,
+                MINUTES_IN_HOURS + (timeFormat) * MINUTES_IN_HOURS,
 
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) *
-                MINUTESINHOURS +
+                MINUTES_IN_HOURS +
                 Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
                 minutesInDay(time.to.split(' ')[0]) -
                 Number(time.to.split(' ')[1].split('+')[1]) *
-                MINUTESINHOURS + (timeFormat) * MINUTESINHOURS
+                MINUTES_IN_HOURS + (timeFormat) * MINUTES_IN_HOURS
             ];
             times.push(period);
         });
@@ -149,10 +149,10 @@ function getBadTimesOfPerson(schedule, timeFormat) {
 }
 
 function minutesInDay(day) {
-    var result = 4 * MINUTESINDAY;
-    GOODWEEKDAYS.forEach(function (dayWeek) {
+    var result = 4 * MINUTES_IN_DAY;
+    GOOD_WEEK_DAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
-            result = dayWeek.coeff * MINUTESINDAY;
+            result = dayWeek.coeff * MINUTES_IN_DAY;
         }
     });
 
@@ -164,17 +164,17 @@ function getBadWorkTimesOfDays(workTime) {
     for (var i = 0; i < 3; i++) {
         var period = [
             Number(workTime.from.split('+')[0].split(':')[0]) *
-            MINUTESINHOURS +
+            MINUTES_IN_HOURS +
             Number(workTime.from.split('+')[0].split(':')[1]) +
-            i * MINUTESINDAY,
+            i * MINUTES_IN_DAY,
 
             Number(workTime.to.split('+')[0].split(':')[0]) *
-            MINUTESINHOURS +
+            MINUTES_IN_HOURS +
             Number(workTime.to.split('+')[0].split(':')[1]) +
-            i * MINUTESINDAY
+            i * MINUTES_IN_DAY
         ];
-        if (period[0] < 3 * MINUTESINDAY &&
-            period[1] < 3 * MINUTESINDAY) {
+        if (period[0] < 3 * MINUTES_IN_DAY &&
+            period[1] < 3 * MINUTES_IN_DAY) {
             time.push(period);
         }
     }
@@ -208,24 +208,24 @@ function getFormatResult(result) {
     result.forEach(function (fromTo) {
         var period = {
             from: {
-                day: dayString(Math.floor(fromTo[0] / (MINUTESINDAY))),
-                hours: timeString(Math.floor(fromTo[0] / MINUTESINHOURS) -
-                    Math.floor(fromTo[0] / (MINUTESINDAY)) * 24),
+                day: dayString(Math.floor(fromTo[0] / (MINUTES_IN_DAY))),
+                hours: timeString(Math.floor(fromTo[0] / MINUTES_IN_HOURS) -
+                    Math.floor(fromTo[0] / (MINUTES_IN_DAY)) * 24),
                 minutes: timeString(fromTo[0] -
-                    Math.floor(fromTo[0] / (MINUTESINDAY)) * (MINUTESINDAY) -
-                    (Math.floor(fromTo[0] / MINUTESINHOURS) -
-                    Math.floor(fromTo[0] / (MINUTESINDAY)) * 24) *
-                    MINUTESINHOURS)
+                    Math.floor(fromTo[0] / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
+                    (Math.floor(fromTo[0] / MINUTES_IN_HOURS) -
+                    Math.floor(fromTo[0] / (MINUTES_IN_DAY)) * 24) *
+                    MINUTES_IN_HOURS)
             },
             to: {
-                day: dayString(Math.floor(fromTo[1] / (MINUTESINDAY))),
-                hours: timeString(Math.floor(fromTo[1] / MINUTESINHOURS) -
-                    Math.floor(fromTo[1] / (MINUTESINDAY)) * 24),
+                day: dayString(Math.floor(fromTo[1] / (MINUTES_IN_DAY))),
+                hours: timeString(Math.floor(fromTo[1] / MINUTES_IN_HOURS) -
+                    Math.floor(fromTo[1] / (MINUTES_IN_DAY)) * 24),
                 minutes: timeString(fromTo[1] -
-                    Math.floor(fromTo[1] / (MINUTESINDAY)) * (MINUTESINDAY) -
-                    (Math.floor(fromTo[1] / MINUTESINHOURS) -
-                    Math.floor(fromTo[1] / (MINUTESINDAY)) * 24) *
-                    MINUTESINHOURS)
+                    Math.floor(fromTo[1] / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
+                    (Math.floor(fromTo[1] / MINUTES_IN_HOURS) -
+                    Math.floor(fromTo[1] / (MINUTES_IN_DAY)) * 24) *
+                    MINUTES_IN_HOURS)
             }
         };
         if (period.from.day === period.to.day) {
@@ -238,7 +238,7 @@ function getFormatResult(result) {
 
 function dayString(day) {
     var dayToString = '';
-    GOODWEEKDAYS.forEach(function (dayWeek) {
+    GOOD_WEEK_DAYS.forEach(function (dayWeek) {
         if (dayWeek.coeff === day) {
             dayToString = dayWeek.toString;
         }
