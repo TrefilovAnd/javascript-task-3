@@ -85,8 +85,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 function getBadPeriods(schedule, mainFormat, workTime) {
     var badGangPeriods = getBadGangPeriods(schedule, mainFormat);
     var badBankPeriods = getBadBanksPeriods(workTime, mainFormat);
-
     var badPeriods = badGangPeriods.concat(badBankPeriods);
+
     badPeriods.sort(function (a, b) {
         return a.to - b.to;
     });
@@ -100,6 +100,7 @@ function getBadPeriods(schedule, mainFormat, workTime) {
 
 function unionBadTimes(badTimes) {
     var times = badTimes;
+
     for (var i = 0; i < times.length - 1; i++) {
         var firstCheckedPeriod = times[i];
         var nextCheckedPeriod = times[i + 1];
@@ -136,10 +137,10 @@ function getBadGangPeriods(schedule, mainTimezone) {
     return periods;
 }
 
-//Перевод дня недели в минуты
+//  Перевод дня недели в минуты
 function minutesInDay(day) {
-    //Берем изначально большое количество,
-    //чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
+    //  Берем изначально большое количество,
+    //  чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
     var result = 4 * MINUTES_IN_DAY;
     GOOD_WEEK_DAYS.forEach(function (dayWeek) {
         if (dayWeek.toString === day) {
@@ -152,6 +153,7 @@ function minutesInDay(day) {
 
 function getBadBanksPeriods(workTime) {
     var periods = [];
+
     for (var i = 0; i < 3; i++) {
         var period = {
             from: bankStringInMinutes(workTime.from) +
@@ -171,14 +173,15 @@ function getBadBanksPeriods(workTime) {
     return periods;
 }
 
-//Перевод строки времени банка в минуты
+//  Перевод строки времени банка в минуты
 function bankStringInMinutes(stringTime) {
     var time = stringTime.match(/(\d\d):(\d\d)/);
+
     return Number(time[1]) * MINUTES_IN_HOURS +
         Number(time[2]);
 }
 
-//Перевод строки времени бандитов в минуты
+//  Перевод строки времени бандитов в минуты
 function gangStringInMinutes(stringTime, mainTimezone) {
     var time = stringTime.match(/([ПНВТСРЧБ]{2}) (\d\d):(\d\d)\+(\d)/);
 
