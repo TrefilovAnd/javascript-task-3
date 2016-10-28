@@ -46,7 +46,6 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {Boolean}
          */
         exists: function () {
-
             return formatResult.length > 0;
         },
 
@@ -58,18 +57,15 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {String}
          */
         format: function (template) {
-            if (!formatResult.length) {
-
+            if (!this.exists()) {
                 return '';
             }
             var firstVariant = formatResult[0].from;
-            var day = RegExp('(%DD)');
-            var hours = RegExp('(%HH)');
-            var minutes = RegExp('(%MM)');
 
-            return template.replace(day, firstVariant.day)
-                .replace(hours, firstVariant.hours)
-                .replace(minutes, firstVariant.minutes);
+            return template
+                .replace(/%DD/, firstVariant.day)
+                .replace(/%HH/, firstVariant.hours)
+                .replace(/%MM/, firstVariant.minutes);
         },
 
         /**
