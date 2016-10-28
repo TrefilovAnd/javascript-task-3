@@ -34,11 +34,12 @@ exports.isStar = false;
  */
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
+    gangStringInMinutes('ВТ 11:05+5', 5);
 
     var bankTimezone = Number(workingHours.from.split('+')[1]);
     var badTimes = getBadTimes(schedule, bankTimezone, workingHours);
-    var workingTimes = getGoodTime(badTimes, duration, bankTimezone);
-    var formatResult = getFormatResult(workingTimes);
+    var goodTimes = getGoodTimes(badTimes, duration, bankTimezone);
+    var formatResult = getFormatResult(goodTimes);
 
     return {
 
@@ -83,7 +84,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
 function getBadTimes(schedule, mainFormat, workTime) {
     var badGangTimes = getBadGangTimes(schedule, mainFormat);
-    var badBankTimes = getBadWorkTimesOfDays(workTime, mainFormat);
+    var badBankTimes = getBadBankTimes(workTime, mainFormat);
 
     var badTimes = badGangTimes.concat(badBankTimes);
     badTimes.sort(function (a, b) {
@@ -117,7 +118,7 @@ function unionBadTimes(badTimes) {
     return times;
 }
 
-function getBadGangTimes(schedule, timeFormat) {
+function getBadGangTimes(schedule, mainTimezome) {
     var periods = [];
     for (var person in schedule) {
         if (!schedule.hasOwnProperty(person)) {
@@ -125,18 +126,8 @@ function getBadGangTimes(schedule, timeFormat) {
         }
         schedule[person].forEach(function (time) {
             var period = {
-                from: Number(time.from.split(' ')[1].split('+')[0].split(':')[0]) *
-                    MINUTES_IN_HOURS +
-                    Number(time.from.split(' ')[1].split('+')[0].split(':')[1]) +
-                    minutesInDay(time.from.split(' ')[0]) -
-                    Number(time.from.split(' ')[1].split('+')[1]) *
-                    MINUTES_IN_HOURS + (timeFormat) * MINUTES_IN_HOURS,
-                to: Number(time.to.split(' ')[1].split('+')[0].split(':')[0]) *
-                    MINUTES_IN_HOURS +
-                    Number(time.to.split(' ')[1].split('+')[0].split(':')[1]) +
-                    minutesInDay(time.to.split(' ')[0]) -
-                    Number(time.to.split(' ')[1].split('+')[1]) *
-                    MINUTES_IN_HOURS + (timeFormat) * MINUTES_IN_HOURS
+                from: gangStringInMinutes(time.from, mainTimezome),
+                to: gangStringInMinutes(time.to, mainTimezome)
             };
             periods.push(period);
         });
@@ -156,17 +147,13 @@ function minutesInDay(day) {
     return result;
 }
 
-function getBadWorkTimesOfDays(workTime) {
+function getBadBankTimes(workTime) {
     var periods = [];
     for (var i = 0; i < 3; i++) {
         var period = {
-            from: Number(workTime.from.split('+')[0].split(':')[0]) *
-                MINUTES_IN_HOURS +
-                Number(workTime.from.split('+')[0].split(':')[1]) +
+            from: bankStringInMinutes(workTime.from) +
                 i * MINUTES_IN_DAY,
-            to: Number(workTime.to.split('+')[0].split(':')[0]) *
-                MINUTES_IN_HOURS +
-                Number(workTime.to.split('+')[0].split(':')[1]) +
+            to: bankStringInMinutes(workTime.to) +
                 i * MINUTES_IN_DAY
         };
         periods.push(period);
@@ -181,7 +168,23 @@ function getBadWorkTimesOfDays(workTime) {
     return periods;
 }
 
-function getGoodTime(badTime, likeTime) {
+function bankStringInMinutes(stringTime) {
+    var time = stringTime.match(/(\d\d):(\d\d)/);
+    return Number(time[1]) * MINUTES_IN_HOURS +
+        Number(time[2]);
+}
+
+function gangStringInMinutes(stringTime, mainTimezone) {
+    var time = stringTime.match(/([ПНВТСРЧБ]{2}) (\d\d):(\d\d)\+(\d)/);
+
+    return Number(time[2]) * MINUTES_IN_HOURS +
+            Number(time[3]) +
+            minutesInDay(time[1]) -
+            Number(time[4]) * MINUTES_IN_HOURS +
+            mainTimezone * MINUTES_IN_HOURS;
+}
+
+function getGoodTimes(badTime, likeTime) {
     var goodTime = [];
     for (var i = 0; i < badTime.length - 1; i ++) {
         var selectedPeriod = badTime[i + 1].from - badTime[i].to;
@@ -192,7 +195,6 @@ function getGoodTime(badTime, likeTime) {
             });
         }
     }
-    console.log(goodTime);
 
     return goodTime;
 }
