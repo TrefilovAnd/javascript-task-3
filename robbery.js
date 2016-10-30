@@ -84,8 +84,8 @@ function getBadPeriods(schedule, mainFormat, workingHours) {
     return badPeriods;
 }
 
-function unionBadTimes(badTimes) {
-    var times = badTimes;
+function unionBadTimes(badPeriods) {
+    var times = badPeriods;
 
     for (var i = 0; i < times.length - 1; i++) {
         var firstVerifiablePeriod = times[i];
