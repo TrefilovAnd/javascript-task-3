@@ -1,21 +1,8 @@
 'use strict';
-var GOOD_WEEK_DAYS = [
-    {
-        coeff: 0,
-        toString: 'ПН'
-    },
-    {
-        coeff: 1,
-        toString: 'ВТ'
-    },
-    {
-        coeff: 2,
-        toString: 'СР'
-    }
-];
+var GOOD_WEEK_DAYS = [ 'ПН', 'ВТ', 'СР'];
 
 var MINUTES_IN_DAY = 24 * 60;
-var MINUTES_IN_HOURS = 60;
+var MINUTES_IN_HOUR = 60;
 var MORNING_OF_THURSDAY = 3 * MINUTES_IN_DAY;
 
 /**
@@ -34,11 +21,10 @@ exports.isStar = false;
  */
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
-    gangStringInMinutes('ВТ 11:05+5', 5);
 
     var bankTimezone = Number(workingHours.from.split('+')[1]);
     var badPeriods = getBadPeriods(schedule, bankTimezone, workingHours);
-    var goodPeriods = getGoodPeriods(badPeriods, duration, bankTimezone);
+    var goodPeriods = getGoodPeriods(badPeriods, duration);
     var formatResult = getFormatResult(goodPeriods);
 
     return {
@@ -65,9 +51,9 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
             var firstVariant = formatResult[0].from;
 
             return template
-                .replace(/%DD/, firstVariant.day)
-                .replace(/%HH/, firstVariant.hours)
-                .replace(/%MM/, firstVariant.minutes);
+                .replace('%DD', firstVariant.day)
+                .replace('%HH', firstVariant.hours)
+                .replace('%MM', firstVariant.minutes);
         },
 
         /**
@@ -76,21 +62,21 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {Boolean}
          */
         tryLater: function () {
-
             return false;
         }
     };
 };
 
-function getBadPeriods(schedule, mainFormat, workTime) {
+function getBadPeriods(schedule, mainFormat, workingHours) {
     var badGangPeriods = getBadGangPeriods(schedule, mainFormat);
-    var badBankPeriods = getBadBanksPeriods(workTime, mainFormat);
+    var badBankPeriods = getBadBankPeriods(workingHours, mainFormat);
     var badPeriods = badGangPeriods.concat(badBankPeriods);
 
     badPeriods.sort(function (a, b) {
-        return a.to - b.to;
-    });
-    badPeriods.sort(function (a, b) {
+        if (a.from === b.from) {
+            return a.to - b.to;
+        }
+
         return a.from - b.from;
     });
     badPeriods = unionBadTimes(badPeriods);
@@ -102,16 +88,16 @@ function unionBadTimes(badTimes) {
     var times = badTimes;
 
     for (var i = 0; i < times.length - 1; i++) {
-        var firstCheckedPeriod = times[i];
-        var nextCheckedPeriod = times[i + 1];
-        if (firstCheckedPeriod.to > nextCheckedPeriod.from &&
-            firstCheckedPeriod.to > nextCheckedPeriod.to) {
-            times[i + 1] = firstCheckedPeriod;
-        } else if (firstCheckedPeriod.to > times[i + 1].from &&
-            firstCheckedPeriod.to < times[i + 1].to) {
+        var firstVerifiablePeriod = times[i];
+        var nextVerifiablePeriod = times[i + 1];
+
+        if (firstVerifiablePeriod.to > nextVerifiablePeriod.to) {
+            times[i + 1] = firstVerifiablePeriod;
+        } else if (firstVerifiablePeriod.to > nextVerifiablePeriod.from &&
+            firstVerifiablePeriod.to < nextVerifiablePeriod.to) {
             times[i + 1] = {
-                from: firstCheckedPeriod.from,
-                to: nextCheckedPeriod.to
+                from: firstVerifiablePeriod.from,
+                to: nextVerifiablePeriod.to
             };
         }
     }
@@ -121,115 +107,123 @@ function unionBadTimes(badTimes) {
 
 function getBadGangPeriods(schedule, mainTimezone) {
     var periods = [];
-    for (var person in schedule) {
-        if (!schedule.hasOwnProperty(person)) {
-            return periods;
-        }
-        schedule[person].forEach(function (time) {
-            var period = {
-                from: gangStringInMinutes(time.from, mainTimezone),
-                to: gangStringInMinutes(time.to, mainTimezone)
-            };
-            periods.push(period);
+    var gangsters = Object.keys(schedule);
+
+    gangsters.forEach(function (gangster) {
+        schedule[gangster].forEach(function (time) {
+            periods.push({
+                from: dayTimeStringToMinutes(time.from, mainTimezone),
+                to: dayTimeStringToMinutes(time.to, mainTimezone)
+            });
         });
-    }
+    });
 
     return periods;
 }
 
 //  Перевод дня недели в минуты
-function minutesInDay(day) {
+function dayToMinutes(day) {
     //  Берем изначально большое количество,
     //  чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
     var result = 4 * MINUTES_IN_DAY;
-    GOOD_WEEK_DAYS.forEach(function (dayWeek) {
-        if (dayWeek.toString === day) {
-            result = dayWeek.coeff * MINUTES_IN_DAY;
+
+    GOOD_WEEK_DAYS.forEach(function (weekDay) {
+        if (weekDay === day) {
+            result = GOOD_WEEK_DAYS.indexOf(day) * MINUTES_IN_DAY;
         }
     });
 
     return result;
 }
 
-function getBadBanksPeriods(workTime) {
+function getBadBankPeriods(workTime) {
     var periods = [];
 
     for (var i = 0; i < 3; i++) {
         var period = {
-            from: bankStringInMinutes(workTime.from) +
+            from: timeStringToMinutes(workTime.from) +
                 i * MINUTES_IN_DAY,
-            to: bankStringInMinutes(workTime.to) +
+            to: timeStringToMinutes(workTime.to) +
                 i * MINUTES_IN_DAY
         };
         periods.push(period);
     }
-    periods = [
-        { from: 0, to: periods[0].from },
-        { from: periods[0].to, to: periods[1].from },
-        { from: periods[1].to, to: periods[2].from },
-        { from: periods[2].to, to: MORNING_OF_THURSDAY }
-    ];
+
+    // Берем противоположное рабочему времени
+    periods.push( {from: periods[2].to, to: MORNING_OF_THURSDAY} );
+    for (var id = 0; id < 3; id++) {
+        periods[id + 1].from = periods[id].to;
+        periods[id].to = periods[id].from;
+    }
+    periods[0].from = 0;
+    periods[3].to = MORNING_OF_THURSDAY;
 
     return periods;
 }
 
 //  Перевод строки времени банка в минуты
-function bankStringInMinutes(stringTime) {
+function timeStringToMinutes(stringTime) {
     var time = stringTime.match(/(\d\d):(\d\d)/);
 
-    return Number(time[1]) * MINUTES_IN_HOURS +
+    return Number(time[1]) * MINUTES_IN_HOUR +
         Number(time[2]);
 }
 
 //  Перевод строки времени бандитов в минуты
-function gangStringInMinutes(stringTime, mainTimezone) {
-    var time = stringTime.match(/([ПНВТСРЧБ]{2}) (\d\d):(\d\d)\+(\d)/);
+function dayTimeStringToMinutes(stringTime, mainTimezone) {
+    var time = stringTime.split(' ');
+    var day = time[0];
+    time = time[1].split('+');
+    var timeZone = Number(time[1]);
+    var hoursAndMinutes = timeStringToMinutes(time[0]);
 
-    return Number(time[2]) * MINUTES_IN_HOURS +
-            Number(time[3]) +
-            minutesInDay(time[1]) -
-            Number(time[4]) * MINUTES_IN_HOURS +
-            mainTimezone * MINUTES_IN_HOURS;
+    return dayToMinutes(day) +
+        hoursAndMinutes -
+        timeZone * MINUTES_IN_HOUR +
+        mainTimezone * MINUTES_IN_HOUR;
 }
 
 function getGoodPeriods(badTime, likeTime) {
-    var periods = [];
+    var goodPeriods = [];
+
     for (var i = 0; i < badTime.length - 1; i ++) {
-        var selectedPeriod = badTime[i + 1].from - badTime[i].to;
-        if (selectedPeriod >= likeTime) {
-            periods.push({
+        var currentPeriod = badTime[i + 1].from - badTime[i].to;
+
+        if (currentPeriod >= likeTime) {
+            goodPeriods.push({
                 from: badTime[i].to,
                 to: badTime[i + 1].from
             });
         }
     }
 
-    return periods;
+    return goodPeriods;
 }
 
 function getFormatResult(result) {
     var formatResult = [];
+
     result.forEach(function (fromTo) {
         var period = {
             from: {
                 day: dayString(Math.floor(fromTo.from / (MINUTES_IN_DAY))),
-                hours: timeString(Math.floor(fromTo.from / MINUTES_IN_HOURS) -
+                hours: timeString(Math.floor(fromTo.from / MINUTES_IN_HOUR) -
                     Math.floor(fromTo.from / (MINUTES_IN_DAY)) * 24),
                 minutes: timeString(fromTo.from -
                     Math.floor(fromTo.from / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
-                    (Math.floor(fromTo.from / MINUTES_IN_HOURS) -
+                    (Math.floor(fromTo.from / MINUTES_IN_HOUR) -
                     Math.floor(fromTo.from / (MINUTES_IN_DAY)) * 24) *
-                    MINUTES_IN_HOURS)
+                    MINUTES_IN_HOUR)
             },
             to: {
                 day: dayString(Math.floor(fromTo.to / (MINUTES_IN_DAY))),
-                hours: timeString(Math.floor(fromTo.to / MINUTES_IN_HOURS) -
+                hours: timeString(Math.floor(fromTo.to / MINUTES_IN_HOUR) -
                     Math.floor(fromTo.to / (MINUTES_IN_DAY)) * 24),
                 minutes: timeString(fromTo.to -
                     Math.floor(fromTo.to / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
-                    (Math.floor(fromTo.to / MINUTES_IN_HOURS) -
+                    (Math.floor(fromTo.to / MINUTES_IN_HOUR) -
                     Math.floor(fromTo.to / (MINUTES_IN_DAY)) * 24) *
-                    MINUTES_IN_HOURS)
+                    MINUTES_IN_HOUR)
             }
         };
         if (period.from.day === period.to.day) {
@@ -241,14 +235,7 @@ function getFormatResult(result) {
 }
 
 function dayString(day) {
-    var dayToString = '';
-    GOOD_WEEK_DAYS.forEach(function (dayWeek) {
-        if (dayWeek.coeff === day) {
-            dayToString = dayWeek.toString;
-        }
-    });
-
-    return dayToString;
+    return GOOD_WEEK_DAYS[day];
 }
 
 function timeString(time) {
