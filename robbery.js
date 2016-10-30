@@ -1,5 +1,5 @@
 'use strict';
-var GOOD_WEEK_DAYS = [ 'ПН', 'ВТ', 'СР'];
+var GOOD_WEEK_DAYS = ['ПН', 'ВТ', 'СР'];
 
 var MINUTES_IN_DAY = 24 * 60;
 var MINUTES_IN_HOUR = 60;
@@ -150,7 +150,7 @@ function getBadBankPeriods(workTime) {
     }
 
     // Берем противоположное рабочему времени
-    periods.push( {from: periods[2].to, to: MORNING_OF_THURSDAY} );
+    periods.push({from: periods[2].to, to: MORNING_OF_THURSDAY});
     for (var id = 0; id < 3; id++) {
         periods[id + 1].from = periods[id].to;
         periods[id].to = periods[id].from;
