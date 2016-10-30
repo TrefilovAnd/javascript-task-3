@@ -150,7 +150,7 @@ function getBadBankPeriods(workTime) {
     }
 
     // Берем противоположное рабочему времени
-    periods.push({from: periods[2].to, to: MORNING_OF_THURSDAY});
+    periods.push({ from: periods[2].to, to: MORNING_OF_THURSDAY });
     for (var id = 0; id < 3; id++) {
         periods[id + 1].from = periods[id].to;
         periods[id].to = periods[id].from;
