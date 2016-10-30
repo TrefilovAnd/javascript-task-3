@@ -148,14 +148,23 @@ function getBadBankPeriods(workTime) {
         };
         periods.push(period);
     }
-    periods = [
-        { from: 0, to: periods[0].from },
-        { from: periods[0].to, to: periods[1].from },
-        { from: periods[1].to, to: periods[2].from },
-        { from: periods[2].to, to: MORNING_OF_THURSDAY }
-    ];
+    periods.push({
+        from: periods[2].to,
+        to: MORNING_OF_THURSDAY
+    });
 
-    return periods;
+    var badBankPeriods = [{ from: 0, to: MORNING_OF_THURSDAY}];
+
+    for (var id = 0; id < periods.length - 1; id++) {
+        badBankPeriods[id].to = periods[id].from;
+        badBankPeriods.push({
+            from: periods[id].to,
+            to: periods[id + 1].from
+        });
+    }
+    badBankPeriods[badBankPeriods.length - 1].to = MORNING_OF_THURSDAY;
+
+    return badBankPeriods;
 }
 
 //  Перевод строки времени банка в минуты
