@@ -148,15 +148,12 @@ function getBadBankPeriods(workTime) {
         };
         periods.push(period);
     }
-
-    // Берем противоположное рабочему времени
-    periods.push({ from: periods[2].to, to: MORNING_OF_THURSDAY });
-    for (var id = 0; id < 3; id++) {
-        periods[id + 1].from = periods[id].to;
-        periods[id].to = periods[id].from;
-    }
-    periods[0].from = 0;
-    periods[3].to = MORNING_OF_THURSDAY;
+    periods = [
+        { from: 0, to: periods[0].from },
+        { from: periods[0].to, to: periods[1].from },
+        { from: periods[1].to, to: periods[2].from },
+        { from: periods[2].to, to: MORNING_OF_THURSDAY }
+    ];
 
     return periods;
 }
