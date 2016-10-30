@@ -153,7 +153,7 @@ function getBadBankPeriods(workTime) {
         to: MORNING_OF_THURSDAY
     });
 
-    var badBankPeriods = [{ from: 0, to: MORNING_OF_THURSDAY}];
+    var badBankPeriods = [{ from: 0, to: MORNING_OF_THURSDAY }];
 
     for (var id = 0; id < periods.length - 1; id++) {
         badBankPeriods[id].to = periods[id].from;
