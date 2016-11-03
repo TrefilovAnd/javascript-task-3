@@ -88,16 +88,13 @@ function unionBadTimes(badPeriods) {
     var times = badPeriods;
 
     for (var i = 0; i < times.length - 1; i++) {
-        var firstVerifiablePeriod = times[i];
-        var nextVerifiablePeriod = times[i + 1];
-
-        if (firstVerifiablePeriod.to > nextVerifiablePeriod.to) {
-            times[i + 1] = firstVerifiablePeriod;
-        } else if (firstVerifiablePeriod.to > nextVerifiablePeriod.from &&
-            firstVerifiablePeriod.to < nextVerifiablePeriod.to) {
+        if (times[i].to > times[i + 1].to) {
+            times[i + 1] = times[i];
+        } else if (times[i].to > times[i + 1].from &&
+            times[i].to < times[i + 1].to) {
             times[i + 1] = {
-                from: firstVerifiablePeriod.from,
-                to: nextVerifiablePeriod.to
+                from: times[i].from,
+                to: times[i + 1].to
             };
         }
     }
@@ -127,39 +124,23 @@ function dayToMinutes(day) {
     //  чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
     var result = 4 * MINUTES_IN_DAY;
 
-    GOOD_WEEK_DAYS.forEach(function (weekDay) {
-        if (weekDay === day) {
-            result = GOOD_WEEK_DAYS.indexOf(day) * MINUTES_IN_DAY;
-        }
-    });
+    if (GOOD_WEEK_DAYS.some(function (weekDay) {
+        return weekDay === day;
+    })) {
+        result = GOOD_WEEK_DAYS.indexOf(day) * MINUTES_IN_DAY;
+    }
 
     return result;
 }
 
 function getBadBankPeriods(workTime) {
-    var periods = [];
-
-    for (var i = 0; i < 3; i++) {
-        var period = {
-            from: timeStringToMinutes(workTime.from) +
-                i * MINUTES_IN_DAY,
-            to: timeStringToMinutes(workTime.to) +
-                i * MINUTES_IN_DAY
-        };
-        periods.push(period);
-    }
-    periods.push({
-        from: periods[2].to,
-        to: MORNING_OF_THURSDAY
-    });
-
     var badBankPeriods = [{ from: 0, to: MORNING_OF_THURSDAY }];
 
-    for (var id = 0; id < periods.length - 1; id++) {
-        badBankPeriods[id].to = periods[id].from;
+    for (var i = 0; i < 3; i++) {
+        badBankPeriods[i].to = timeStringToMinutes(workTime.from) + i * MINUTES_IN_DAY;
         badBankPeriods.push({
-            from: periods[id].to,
-            to: periods[id + 1].from
+            from: timeStringToMinutes(workTime.to) + i * MINUTES_IN_DAY,
+            to: timeStringToMinutes(workTime.from) + (i + 1) * MINUTES_IN_DAY
         });
     }
     badBankPeriods[badBankPeriods.length - 1].to = MORNING_OF_THURSDAY;
@@ -181,10 +162,9 @@ function dayTimeStringToMinutes(stringTime, mainTimezone) {
     var day = time[0];
     time = time[1].split('+');
     var timeZone = Number(time[1]);
-    var hoursAndMinutes = timeStringToMinutes(time[0]);
 
     return dayToMinutes(day) +
-        hoursAndMinutes -
+        timeStringToMinutes(time[0]) -
         timeZone * MINUTES_IN_HOUR +
         mainTimezone * MINUTES_IN_HOUR;
 }
@@ -211,26 +191,8 @@ function getFormatResult(result) {
 
     result.forEach(function (fromTo) {
         var period = {
-            from: {
-                day: dayString(Math.floor(fromTo.from / (MINUTES_IN_DAY))),
-                hours: timeString(Math.floor(fromTo.from / MINUTES_IN_HOUR) -
-                    Math.floor(fromTo.from / (MINUTES_IN_DAY)) * 24),
-                minutes: timeString(fromTo.from -
-                    Math.floor(fromTo.from / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
-                    (Math.floor(fromTo.from / MINUTES_IN_HOUR) -
-                    Math.floor(fromTo.from / (MINUTES_IN_DAY)) * 24) *
-                    MINUTES_IN_HOUR)
-            },
-            to: {
-                day: dayString(Math.floor(fromTo.to / (MINUTES_IN_DAY))),
-                hours: timeString(Math.floor(fromTo.to / MINUTES_IN_HOUR) -
-                    Math.floor(fromTo.to / (MINUTES_IN_DAY)) * 24),
-                minutes: timeString(fromTo.to -
-                    Math.floor(fromTo.to / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
-                    (Math.floor(fromTo.to / MINUTES_IN_HOUR) -
-                    Math.floor(fromTo.to / (MINUTES_IN_DAY)) * 24) *
-                    MINUTES_IN_HOUR)
-            }
+            from: minutesToTimeString(fromTo.from),
+            to: minutesToTimeString(fromTo.to)
         };
         if (period.from.day === period.to.day) {
             formatResult.push(period);
@@ -240,11 +202,22 @@ function getFormatResult(result) {
     return formatResult;
 }
 
-function dayString(day) {
-    return GOOD_WEEK_DAYS[day];
+function minutesToTimeString(allMinutes) {
+    var day = Math.floor(allMinutes / (MINUTES_IN_DAY));
+    var hours = Math.floor(allMinutes / MINUTES_IN_HOUR) -
+            day * 24;
+    var minutes = allMinutes -
+        Math.floor(allMinutes / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
+        (hours) * MINUTES_IN_HOUR;
+
+    return {
+        day: GOOD_WEEK_DAYS[day],
+        hours: formatTimeNumber(hours),
+        minutes: formatTimeNumber(minutes)
+    };
 }
 
-function timeString(time) {
+function formatTimeNumber(time) {
     if (time.toString().length === 1) {
         return '0' + time.toString();
     }
