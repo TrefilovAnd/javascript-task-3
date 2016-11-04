@@ -79,27 +79,23 @@ function getBadPeriods(schedule, mainFormat, workingHours) {
 
         return a.from - b.from;
     });
-    badPeriods = unionBadTimes(badPeriods);
+    unionBadTimes(badPeriods);
 
     return badPeriods;
 }
 
 function unionBadTimes(badPeriods) {
-    var times = badPeriods;
-
-    for (var i = 0; i < times.length - 1; i++) {
-        if (times[i].to > times[i + 1].to) {
-            times[i + 1] = times[i];
-        } else if (times[i].to > times[i + 1].from &&
-            times[i].to < times[i + 1].to) {
-            times[i + 1] = {
-                from: times[i].from,
-                to: times[i + 1].to
+    for (var i = 0; i < badPeriods.length - 1; i++) {
+        if (badPeriods[i].to > badPeriods[i + 1].to) {
+            badPeriods[i + 1] = badPeriods[i];
+        } else if (badPeriods[i].to > badPeriods[i + 1].from &&
+            badPeriods[i].to < badPeriods[i + 1].to) {
+            badPeriods[i + 1] = {
+                from: badPeriods[i].from,
+                to: badPeriods[i + 1].to
             };
         }
     }
-
-    return times;
 }
 
 function getBadGangPeriods(schedule, mainTimezone) {
@@ -120,17 +116,15 @@ function getBadGangPeriods(schedule, mainTimezone) {
 
 //  Перевод дня недели в минуты
 function dayToMinutes(day) {
-    //  Берем изначально большое количество,
+    //  Вернем большое количество,
     //  чтобы в дальнейшем не рассматривать, если не ПН, ВТ или СР
-    var result = 4 * MINUTES_IN_DAY;
-
     if (GOOD_WEEK_DAYS.some(function (weekDay) {
         return weekDay === day;
     })) {
-        result = GOOD_WEEK_DAYS.indexOf(day) * MINUTES_IN_DAY;
+        return GOOD_WEEK_DAYS.indexOf(day) * MINUTES_IN_DAY;
     }
 
-    return result;
+    return 4 * MINUTES_IN_DAY;
 }
 
 function getBadBankPeriods(workTime) {
@@ -207,7 +201,7 @@ function minutesToTimeString(allMinutes) {
     var hours = Math.floor(allMinutes / MINUTES_IN_HOUR) -
             day * 24;
     var minutes = allMinutes -
-        Math.floor(allMinutes / (MINUTES_IN_DAY)) * (MINUTES_IN_DAY) -
+        Math.floor(day) * (MINUTES_IN_DAY) -
         (hours) * MINUTES_IN_HOUR;
 
     return {
